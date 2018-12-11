@@ -34,7 +34,8 @@ module.exports = function (Model, options) {
      */
     Model.app.post('/request-password-reset', function (request, response, next) {
       Model.resetPassword({
-        email: request.body.email
+        email: request.body.email,
+        emailTemplate: request.body.emailTemplate
       }, function (err) {
         if (err) return response.status(401).send(err);
         else return response.status(200).send({
@@ -73,7 +74,13 @@ module.exports = function (Model, options) {
 
   Model.on('resetPasswordRequest', function (info) {
     var settings = Model.app.settings;
-    var html = 'Hello <br /><br /> There was recently a request to change the password on your account.<br /><br />If you requested this password change, please click the <a href="' + settings.protocol + '://' + settings.host + ':' + settings.port + '/confirm-password-reset?access_token=' + info.accessToken.id + '">Link</a> to set a new password.<br /><br />If you did not make this request or need assistance please write to us at support@bnext.in or call our customer support no. +91 992 099 8066<br /><br />Thank you.<br />The Bnext Team';
+    var html;
+    if(info.options.emailTemplate) {
+      html = info.options.emailTemplate.replace('%s', info.accessToken.id);
+    }
+    else {
+      html = 'Click on <a href="' + settings.protocol + '://' + settings.host + ':' + settings.port + '/confirm-password-reset?access_token=' + info.accessToken.id + '">this</a> url to reset your password';
+    }
     transporter.sendMail({
       from: process.env.RESET_PASSWORD_EMAIL,
       to: info.user.email,
@@ -87,32 +94,32 @@ module.exports = function (Model, options) {
     });
   });
 
-  Model.observe('after save', function (ctx, next) {
-    try {
-      if (ctx.isNewInstance) {
-        var verifyOptions = {
-          type: 'email',
-          to: ctx.instance.email,
-          subject: 'Thanks for registering.',
-          from: process.env.VERIFICATION_EMAIL,
-          redirect: '/',
-          user: ctx.instance,
-          mailer: transporter
-        };
-        ctx.instance.verify(verifyOptions, function (err, obj) {
-          if (err) {
-            console.log('error from the mailer', err);
-            next(err);
-          }
-          console.log('verification email sent:', obj);
-        });
-      }
-      next();
-    }
-    catch (e) {
-      console.log('error ', e);
-      next(e);
-    }
-  });
+  // Model.observe('after save', function (ctx, next) {
+  //   try {
+  //     if (ctx.isNewInstance) {
+  //       var verifyOptions = {
+  //         type: 'email',
+  //         to: ctx.instance.email,
+  //         subject: 'Thanks for registering.',
+  //         from: process.env.VERIFICATION_EMAIL,
+  //         redirect: '/',
+  //         user: ctx.instance,
+  //         mailer: transporter
+  //       };
+  //       ctx.instance.verify(verifyOptions, function (err, obj) {
+  //         if (err) {
+  //           console.log('error from the mailer', err);
+  //           next(err);
+  //         }
+  //         console.log('verification email sent:', obj);
+  //       });
+  //     }
+  //     next();
+  //   }
+  //   catch (e) {
+  //     console.log('error ', e);
+  //     next(e);
+  //   }
+  // });
 
 };
