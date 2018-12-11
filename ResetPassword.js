@@ -94,32 +94,32 @@ module.exports = function (Model, options) {
     });
   });
 
-  Model.observe('after save', function (ctx, next) {
-    try {
-      if (ctx.isNewInstance) {
-        var verifyOptions = {
-          type: 'email',
-          to: ctx.instance.email,
-          subject: 'Thanks for registering.',
-          from: process.env.VERIFICATION_EMAIL,
-          redirect: '/',
-          user: ctx.instance,
-          mailer: transporter
-        };
-        ctx.instance.verify(verifyOptions, function (err, obj) {
-          if (err) {
-            console.log('error from the mailer', err);
-            next(err);
-          }
-          console.log('verification email sent:', obj);
-        });
-      }
-      next();
-    }
-    catch (e) {
-      console.log('error ', e);
-      next(e);
-    }
-  });
+  // Model.observe('after save', function (ctx, next) {
+  //   try {
+  //     if (ctx.isNewInstance) {
+  //       var verifyOptions = {
+  //         type: 'email',
+  //         to: ctx.instance.email,
+  //         subject: 'Thanks for registering.',
+  //         from: process.env.VERIFICATION_EMAIL,
+  //         redirect: '/',
+  //         user: ctx.instance,
+  //         mailer: transporter
+  //       };
+  //       ctx.instance.verify(verifyOptions, function (err, obj) {
+  //         if (err) {
+  //           console.log('error from the mailer', err);
+  //           next(err);
+  //         }
+  //         console.log('verification email sent:', obj);
+  //       });
+  //     }
+  //     next();
+  //   }
+  //   catch (e) {
+  //     console.log('error ', e);
+  //     next(e);
+  //   }
+  // });
 
 };
